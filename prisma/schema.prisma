@@ -19,15 +19,157 @@ enum UserType {
   Seller
 }
 
+enum FinancialReadiness {
+  Low
+  High
+}
+
+enum Status_Seller {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Status_Disposit {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum Status_Review {
+  PENDING
+  APPROVED
+  REJECTED
+}
 
 model User {
-  id         String @id @default(cuid())
-  First_name String
-  Last_name  String
-  Email      String
-  Phone      String
-  Password   String
-  userType   UserType @default(Buyer)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String        @id @default(cuid())
+  First_name   String
+  Last_name    String
+  Email        String
+  Phone        String
+  Password     String
+  userType     UserType      @default(Buyer)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  Buyer        Buyer?
+  Seller       Seller?
+  PropertyPost PropertyPost?
 }
+
+model Buyer {
+  id                    String             @id @default(cuid())
+  user                  User               @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId                String             @unique
+  Age                   Int
+  Occaaption            String
+  Monthly_Income        Float
+  Family_Size           Int
+  Financial_Readiness   FinancialReadiness @default(Low)
+  Preferred_Province    String
+  Preferred_District    String
+  Parking_Needs         Boolean
+  Nearby_Facilities     Json?
+  Lifestyle_Preferences Json?
+  Hobbies               Json?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  Deposit               Deposit[]
+  DocumentUpload        DocumentUpload[]
+}
+
+model Seller {
+  id                 String         @id @default(cuid())
+  user               User           @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId             String         @unique
+  National_ID        String
+  Company_Name       String
+  RealEstate_License String
+  Status             Status_Seller
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  PropertyPost       PropertyPost[]
+}
+
+model Location {
+  id           String         @id @default(cuid())
+  Province     String
+  District     String
+  Sub_District String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  PropertyPost PropertyPost[]
+}
+
+model Category {
+  id           String         @id @default(cuid())
+  name         String
+  PropertyPost PropertyPost[]
+}
+
+model PropertyType {
+  id           String         @id @default(cuid())
+  name         String
+  PropertyPost PropertyPost[]
+}
+
+model PropertyPost {
+  id              String       @id @default(cuid())
+  Property_Name   String
+  Price           Float
+  Usable_Area     Float
+  Land_Size       Float
+  Bedrooms        Int
+  Bathroom        Int
+  Floors          Int
+  Description     String
+  Deposit_Amount  Float
+  Contract_Seller String
+  Property_Images String
+  Seller          Seller       @relation(fields: [sellerId], references: [id],onDelete: Cascade)
+  sellerId        String       @unique
+  user            User         @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId          String       @unique
+  Propertytype    PropertyType @relation(fields: [propertyTypeId], references: [id])
+  propertyTypeId  String
+  Category        Category     @relation(fields: [categoryId], references: [id])
+  categoryId      String
+  Location        Location     @relation(fields: [locationId], references: [id])
+  locationId      String
+  Deposit         Deposit[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model Deposit {
+  id             String          @id @default(cuid())
+  Post           PropertyPost    @relation(fields: [postId], references: [id],onDelete: Cascade)
+  postId         String
+  Buyer          Buyer           @relation(fields: [buyerId], references: [id],onDelete: Cascade)
+  buyerId        String
+  Deposit_Status Status_Disposit
+  Deposit_Amount Float
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model DocumentType {
+  id             String           @id @default(cuid())
+  name           String
+  DocumentUpload DocumentUpload[]
+}
+
+model DocumentUpload {
+  id             String        @id @default(cuid())
+  DocumentName   String
+  Review_Status  Status_Review
+  Rejection_Note String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  Buyer          Buyer         @relation(fields: [buyerId], references: [id],onDelete: Cascade)
+  buyerId        String
+  DocumentType   DocumentType  @relation(fields: [typeId], references: [id])
+  typeId         String
+}
+
+
