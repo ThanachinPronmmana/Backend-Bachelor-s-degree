@@ -42,24 +42,55 @@ enum Status_Review {
   REJECTED
 }
 
+enum PaymentType {
+  CREDIT_CARD
+  QR
+}
+
+enum Status_payment {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum NegotiationStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum ContractStatus {
+  PENDING
+  SIGNED
+  REJECTED
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
 model User {
-  id           String        @id @default(cuid())
+  id           String         @id @default(cuid())
   First_name   String
   Last_name    String
   Email        String
   Phone        String
   Password     String
-  userType     UserType      @default(Buyer)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  userType     UserType       @default(Buyer)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   Buyer        Buyer?
   Seller       Seller?
   PropertyPost PropertyPost?
+  Payment      Payment[]
+  Contract     Contract[]
+  Notification Notification[]
 }
 
 model Buyer {
   id                    String             @id @default(cuid())
-  user                  User               @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String             @unique
   Age                   Int
   Occaaption            String
@@ -76,19 +107,26 @@ model Buyer {
   updatedAt             DateTime           @updatedAt
   Deposit               Deposit[]
   DocumentUpload        DocumentUpload[]
+  Negotiation           Negotiation[]
+  Image                 Image[]
 }
 
 model Seller {
   id                 String         @id @default(cuid())
-  user               User           @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String         @unique
   National_ID        String
   Company_Name       String
   RealEstate_License String
   Status             Status_Seller
+  StartTime          DateTime
+  isBooked           Boolean        @default(false)
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   PropertyPost       PropertyPost[]
+  Negotiation        Negotiation[]
+  Contract           Contract[]
+  Image              Image[]
 }
 
 model Location {
@@ -114,7 +152,7 @@ model PropertyType {
 }
 
 model PropertyPost {
-  id              String       @id @default(cuid())
+  id              String        @id @default(cuid())
   Property_Name   String
   Price           Float
   Usable_Area     Float
@@ -126,31 +164,37 @@ model PropertyPost {
   Deposit_Amount  Float
   Contract_Seller String
   Property_Images String
-  Seller          Seller       @relation(fields: [sellerId], references: [id],onDelete: Cascade)
-  sellerId        String       @unique
-  user            User         @relation(fields: [userId], references: [id],onDelete: Cascade)
-  userId          String       @unique
-  Propertytype    PropertyType @relation(fields: [propertyTypeId], references: [id])
+  Latitude        Float
+  Longitude       Float
+  Seller          Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId        String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String        @unique
+  Propertytype    PropertyType  @relation(fields: [propertyTypeId], references: [id])
   propertyTypeId  String
-  Category        Category     @relation(fields: [categoryId], references: [id])
+  Category        Category      @relation(fields: [categoryId], references: [id])
   categoryId      String
-  Location        Location     @relation(fields: [locationId], references: [id])
+  Location        Location      @relation(fields: [locationId], references: [id])
   locationId      String
   Deposit         Deposit[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  Payment         Payment[]
+  Negotiation     Negotiation[]
+  Image           Image[]
 }
 
 model Deposit {
   id             String          @id @default(cuid())
-  Post           PropertyPost    @relation(fields: [postId], references: [id],onDelete: Cascade)
+  Post           PropertyPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId         String
-  Buyer          Buyer           @relation(fields: [buyerId], references: [id],onDelete: Cascade)
+  Buyer          Buyer           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   buyerId        String
   Deposit_Status Status_Disposit
   Deposit_Amount Float
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  Negotiation    Negotiation?
 }
 
 model DocumentType {
@@ -166,10 +210,82 @@ model DocumentUpload {
   Rejection_Note String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  Buyer          Buyer         @relation(fields: [buyerId], references: [id],onDelete: Cascade)
+  Buyer          Buyer         @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   buyerId        String
   DocumentType   DocumentType  @relation(fields: [typeId], references: [id])
   typeId         String
 }
 
+model Payment {
+  id             String         @id @default(cuid())
+  User           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  PropertyPost   PropertyPost   @relation(fields: [postId], references: [id])
+  postId         String
+  PaymentType    PaymentType
+  Payment_Amount Float
+  Payment_Slip   String
+  Status         Status_payment
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
 
+model Negotiation {
+  id                String            @id @default(cuid())
+  NegotiationDate   DateTime
+  NegotiationStatus NegotiationStatus
+  Buyer             Buyer             @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  buyerId           String
+  Seller            Seller            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId          String
+  PropertyPost      PropertyPost      @relation(fields: [postId], references: [id])
+  postId            String
+  Deposit           Deposit?          @relation(fields: [depositId], references: [id])
+  depositId         String            @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  Contract          Contract[]
+}
+
+model Contract {
+  id                String         @id @default(cuid())
+  buyerId           String
+  sellerId          String
+  negotiationId     String
+  BuyerContractDoc  String
+  BuyerUploadDate   DateTime
+  SellerContractDoc String
+  SellerUploadDate  DateTime
+  contractStatus    ContractStatus
+  buyer             User           @relation(fields: [buyerId], references: [id])
+  seller            Seller         @relation(fields: [sellerId], references: [id])
+  negotiation       Negotiation    @relation(fields: [negotiationId], references: [id])
+}
+
+model Notification {
+  id             String             @id @default(cuid())
+  userId         String
+  referenceId    String?
+  Title          String
+  Message        String
+  Status         NotificationStatus
+  createdAt      DateTime           @default(now())
+  relatedProcess String?
+  user           User               @relation(fields: [userId], references: [id])
+}
+
+model Image {
+  id             String       @id @default(cuid())
+  asset_id       String
+  public_id      String
+  url            String
+  secure_url     String
+  PropertyPost   PropertyPost @relation(fields: [propertyPostId], references: [id])
+  propertyPostId String
+  Buyer          Buyer        @relation(fields: [buyerId], references: [id])
+  buyerId        String
+  Seller         Seller       @relation(fields: [sellerId], references: [id])
+  sellerId       String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
