@@ -1,10 +1,181 @@
-exports.register = async(req,res)=>{
-    try{
-        console.log("hello")
-        res.send("hello")
-    }catch(err){
-        res.status(500).json({
-            massage:"Server error"
-        })
+const prisma = require("../config/prisma")
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
+exports.register = async (req, res) => {
+  try {
+    const { 
+      Email,
+      Password,
+      Phone,
+      First_name,
+      Last_name,
+      userType,
+      Age,
+      Occaaption,
+      Monthly_Income,
+      Family_Size,
+      Preferred_Province,
+      Preferred_District,
+      National_ID,
+      Company_Name,
+      RealEstate_License,
+      Status
+    } = req.body;
+
+    if (!Email) return res.status(400).json({ message: "Email is required!!" });
+    if (!Password) return res.status(400).json({ message: "Password is required!!" });
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        Email: Email
+      },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already exists" });
     }
+
+    const hashedPassword = await bcrypt.hash(Password, 10);
+
+    // Register Buyer
+    if (userType === "Buyer") {
+      await prisma.user.create({
+        data: {
+          Email: Email,
+          Password: hashedPassword,
+          Phone: Phone,
+          First_name: First_name,
+          Last_name: Last_name,
+          userType: "Buyer",
+          Buyer: {
+            create: {
+              Age: Age,
+              Occaaption: Occaaption,
+              Monthly_Income: Monthly_Income,
+              Family_Size: Family_Size,
+              Preferred_Province: Preferred_Province,
+              Preferred_District: Preferred_District,
+              Parking_Needs: false
+            }
+          }
+        }
+      });
+
+      return res.json({ message: "Register Buyer success" });
+    }
+
+    // Register Seller
+    if (userType === "Seller") {
+      await prisma.user.create({
+        data: {
+          Email: Email,
+          Password: hashedPassword,
+          Phone: Phone,
+          First_name: First_name,
+          Last_name: Last_name,
+          userType: "Seller",
+          Seller: {
+            create: {
+              National_ID: National_ID,
+              Company_Name: Company_Name,
+              RealEstate_License: RealEstate_License,
+              Status: Status,
+              StartTime: new Date(),
+            }
+          }
+        }
+      });
+
+      return res.send("Register sucess")
+    }
+
+    return res.status(400).json({ message: "Invalid userType" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+exports.login = async (req, res) => {
+  try {
+    const { Email, Password } = req.body;
+    const user = await prisma.user.findFirst({
+      where: {
+        Email: Email
+      },
+      include: {
+        Seller: true,
+        Buyer: true
+      }
+    })
+    if (!user) {
+      return res.status(400).json({
+        message: "Password invalid"
+      })
+    }
+    const is_Match = await bcrypt.compare(Password, user.Password)
+    if (!is_Match) {
+      return res.status(400).json({
+        message: "Password invalid"
+      })
+    }
+    let payload
+
+    if (user.userType === "Seller" && user.Seller) {
+      payload = {
+        id: user.id,
+        Email: user.Email,
+        userType: user.userType,
+        Phone: user.Phone,
+        First_name: user.First_name,
+        Last_name: user.Last_name,
+        Seller: {
+          id: user.Seller.id,
+          National_ID: user.Seller.National_ID,
+          Company_Name: user.Seller.Company_Name,
+          RealEstate_License: user.Seller.RealEstate_License,
+          Status: user.Seller.Status,
+          StartTime: user.Seller.StartTime,
+        }
+      }
+    } else if (user.userType === "Buyer" && user.Buyer) {
+      payload = {
+        id: user.id,
+        Email: user.Email,
+        userType: user.userType,
+        Phone: user.Phone,
+        First_name: user.First_name,
+        Last_name: user.Last_name,
+        Buyer:{
+          id: user.Buyer.id,
+          Age:user.Buyer.Age,
+          Occaaption:user.Buyer.Occaaption,
+          Monthly_Income:user.Buyer.Monthly_Income,
+          Family_Size:user.Buyer.Family_Size,
+          Preferred_Province:user.Buyer.Preferred_Province,
+          Preferred_District:user.Buyer.Preferred_District,
+        }
+      }
+    }
+    console.log(payload)
+    jwt.sign(payload, process.env.SECRETKEY, {
+      expiresIn: "7d"
+    }, (err, token) => {
+      if (err) {
+        return res.status(500).json({
+          message: "Server Error"
+        })
+      }
+      res.json({
+        message:"Login Sucess"
+      })
+    })
+    
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message:"Server Error"
+    })
+  }
 }

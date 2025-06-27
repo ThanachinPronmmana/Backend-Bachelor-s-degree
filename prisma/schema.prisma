@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -17,6 +16,7 @@ datasource db {
 enum UserType {
   Buyer
   Seller
+  Admin
 }
 
 enum FinancialReadiness {
@@ -105,6 +105,7 @@ model Buyer {
   Hobbies               Json?
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
+  
   Deposit               Deposit[]
   DocumentUpload        DocumentUpload[]
   Negotiation           Negotiation[]
@@ -118,15 +119,17 @@ model Seller {
   National_ID        String
   Company_Name       String
   RealEstate_License String
-  Status             Status_Seller
-  StartTime          DateTime
+  Status             Status_Seller  @default(PENDING)
+  StartTime          DateTime?
   isBooked           Boolean        @default(false)
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
+
   PropertyPost       PropertyPost[]
   Negotiation        Negotiation[]
   Contract           Contract[]
   Image              Image[]
+  Setdatetime        Setdatetime[]
 }
 
 model Location {
@@ -164,8 +167,10 @@ model PropertyPost {
   Deposit_Amount  Float
   Contract_Seller String
   Property_Images String
+  LinkMap         String?
   Latitude        Float
   Longitude       Float
+
   Seller          Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   sellerId        String        @unique
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -179,6 +184,7 @@ model PropertyPost {
   Deposit         Deposit[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
   Payment         Payment[]
   Negotiation     Negotiation[]
   Image           Image[]
@@ -289,3 +295,255 @@ model Image {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
+
+model Setdatetime {
+  id        String   @id @default(cuid())
+  Date      String
+  Month     String
+  Year      String
+  Time      String
+  Seller    Seller   @relation(fields: [sellerId], references: [id])
+  sellerId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/**
+ * // Prisma schema for MongoDB
+ * // Prisma Client generator
+ * generator client {
+ * provider = "prisma-client-js"
+ * }
+ * datasource db {
+ * provider = "mongodb"
+ * url      = env("DATABASE_URL")
+ * }
+ * enum UserType {
+ * Buyer
+ * Seller
+ * }
+ * enum FinancialReadiness {
+ * Low
+ * High
+ * }
+ * enum Status_Seller {
+ * PENDING
+ * APPROVED
+ * REJECTED
+ * }
+ * enum Status_Disposit {
+ * PENDING
+ * CONFIRMED
+ * REJECTED
+ * }
+ * enum Status_Review {
+ * PENDING
+ * APPROVED
+ * REJECTED
+ * }
+ * enum PaymentType {
+ * CREDIT_CARD
+ * QR
+ * }
+ * enum Status_payment {
+ * PENDING
+ * CONFIRMED
+ * REJECTED
+ * }
+ * enum NegotiationStatus {
+ * PENDING
+ * SUCCESS
+ * FAILED
+ * }
+ * enum ContractStatus {
+ * PENDING
+ * SIGNED
+ * REJECTED
+ * }
+ * enum NotificationStatus {
+ * UNREAD
+ * READ
+ * }
+ * model User {
+ * id           String         @id @default(auto()) @map("_id")
+ * First_name   String
+ * Last_name    String
+ * Email        String         @unique
+ * Phone        String
+ * Password     String
+ * userType     UserType       @default(Buyer)
+ * createdAt    DateTime       @default(now())
+ * updatedAt    DateTime       @updatedAt
+ * Buyer        Buyer?
+ * Seller       Seller?
+ * PropertyPost PropertyPost[]
+ * Payment      Payment[]
+ * Contract     Contract[]
+ * Notification Notification[]
+ * }
+ * model Buyer {
+ * id                    String             @id @default(auto()) @map("_id")
+ * userId                String             @unique
+ * Age                   Int
+ * Occaaption            String
+ * Monthly_Income        Float
+ * Family_Size           Int
+ * Financial_Readiness   FinancialReadiness @default(Low)
+ * Preferred_Province    String
+ * Preferred_District    String
+ * Parking_Needs         Boolean
+ * Nearby_Facilities     Json?
+ * Lifestyle_Preferences Json?
+ * Hobbies               Json?
+ * createdAt             DateTime           @default(now())
+ * updatedAt             DateTime           @updatedAt
+ * Deposit               Deposit[]
+ * DocumentUpload        DocumentUpload[]
+ * Negotiation           Negotiation[]
+ * Image                 Image[]
+ * }
+ * model Seller {
+ * id                 String         @id @default(auto()) @map("_id")
+ * userId             String         @unique
+ * National_ID        String
+ * Company_Name       String
+ * RealEstate_License String
+ * Status             Status_Seller
+ * StartTime          DateTime
+ * isBooked           Boolean        @default(false)
+ * createdAt          DateTime       @default(now())
+ * updatedAt          DateTime       @updatedAt
+ * PropertyPost       PropertyPost[]
+ * Negotiation        Negotiation[]
+ * Contract           Contract[]
+ * Image              Image[]
+ * }
+ * model Location {
+ * id           String         @id @default(auto()) @map("_id")
+ * Province     String
+ * District     String
+ * Sub_District String
+ * createdAt    DateTime       @default(now())
+ * updatedAt    DateTime       @updatedAt
+ * PropertyPost PropertyPost[]
+ * }
+ * model Category {
+ * id           String         @id @default(auto()) @map("_id")
+ * name         String
+ * PropertyPost PropertyPost[]
+ * }
+ * model PropertyType {
+ * id           String         @id @default(auto()) @map("_id")
+ * name         String
+ * PropertyPost PropertyPost[]
+ * }
+ * model PropertyPost {
+ * id              String        @id @default(auto()) @map("_id")
+ * Property_Name   String
+ * Price           Float
+ * Usable_Area     Float
+ * Land_Size       Float
+ * Bedrooms        Int
+ * Bathroom        Int
+ * Floors          Int
+ * Description     String
+ * Deposit_Amount  Float
+ * Contract_Seller String
+ * Property_Images String
+ * LinkMap         String?
+ * Latitude        Float
+ * Longitude       Float
+ * sellerId        String
+ * userId          String
+ * propertyTypeId  String
+ * categoryId      String
+ * locationId      String
+ * createdAt       DateTime      @default(now())
+ * updatedAt       DateTime      @updatedAt
+ * Deposit         Deposit[]
+ * Payment         Payment[]
+ * Negotiation     Negotiation[]
+ * Image           Image[]
+ * }
+ * model Deposit {
+ * id             String          @id @default(auto()) @map("_id")
+ * postId         String
+ * buyerId        String
+ * Deposit_Status Status_Disposit
+ * Deposit_Amount Float
+ * createdAt      DateTime        @default(now())
+ * updatedAt      DateTime        @updatedAt
+ * Negotiation    Negotiation?
+ * }
+ * model DocumentType {
+ * id             String           @id @default(auto()) @map("_id")
+ * name           String
+ * DocumentUpload DocumentUpload[]
+ * }
+ * model DocumentUpload {
+ * id             String        @id @default(auto()) @map("_id")
+ * DocumentName   String
+ * Review_Status  Status_Review
+ * Rejection_Note String?
+ * createdAt      DateTime      @default(now())
+ * updatedAt      DateTime      @updatedAt
+ * buyerId        String
+ * typeId         String
+ * }
+ * model Payment {
+ * id             String         @id @default(auto()) @map("_id")
+ * userId         String
+ * postId         String
+ * PaymentType    PaymentType
+ * Payment_Amount Float
+ * Payment_Slip   String
+ * Status         Status_payment
+ * createdAt      DateTime       @default(now())
+ * updatedAt      DateTime       @updatedAt
+ * }
+ * model Negotiation {
+ * id                String            @id @default(auto()) @map("_id")
+ * NegotiationDate   DateTime
+ * NegotiationStatus NegotiationStatus
+ * buyerId           String
+ * sellerId          String
+ * postId            String
+ * depositId         String?
+ * createdAt         DateTime          @default(now())
+ * updatedAt         DateTime          @updatedAt
+ * Contract          Contract[]
+ * }
+ * model Contract {
+ * id                String         @id @default(auto()) @map("_id")
+ * buyerId           String
+ * sellerId          String
+ * negotiationId     String
+ * BuyerContractDoc  String
+ * BuyerUploadDate   DateTime
+ * SellerContractDoc String
+ * SellerUploadDate  DateTime
+ * contractStatus    ContractStatus
+ * }
+ * model Notification {
+ * id             String             @id @default(auto()) @map("_id")
+ * userId         String
+ * referenceId    String?
+ * Title          String
+ * Message        String
+ * Status         NotificationStatus
+ * createdAt      DateTime           @default(now())
+ * relatedProcess String?
+ * }
+ * model Image {
+ * id             String       @id @default(auto()) @map("_id")
+ * asset_id       String
+ * public_id      String
+ * url            String
+ * secure_url     String
+ * propertyPostId String
+ * buyerId        String
+ * sellerId       String
+ * createdAt      DateTime     @default(now())
+ * updatedAt      DateTime     @updatedAt
+ * }
+ */

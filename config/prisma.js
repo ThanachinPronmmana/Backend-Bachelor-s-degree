@@ -1,3 +1,4 @@
-const { PrismaClient } = requrie('@prisma/cliend')
+const {PrismaClient} = require("@prisma/client")
 const prisma = new PrismaClient()
-model.exports = prisma
+
+module.exports = prisma
