@@ -6,7 +6,7 @@ CREATE TABLE `User` (
     `Email` VARCHAR(191) NOT NULL,
     `Phone` VARCHAR(191) NOT NULL,
     `Password` VARCHAR(191) NOT NULL,
-    `userType` ENUM('Buyer', 'Seller') NOT NULL DEFAULT 'Buyer',
+    `userType` ENUM('Buyer', 'Seller', 'Admin') NOT NULL DEFAULT 'Buyer',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -21,13 +21,12 @@ CREATE TABLE `Buyer` (
     `Occaaption` VARCHAR(191) NOT NULL,
     `Monthly_Income` DOUBLE NOT NULL,
     `Family_Size` INTEGER NOT NULL,
-    `Financial_Readiness` ENUM('Low', 'High') NOT NULL DEFAULT 'Low',
     `Preferred_Province` VARCHAR(191) NOT NULL,
     `Preferred_District` VARCHAR(191) NOT NULL,
-    `Parking_Needs` BOOLEAN NOT NULL,
-    `Nearby_Facilities` JSON NULL,
-    `Lifestyle_Preferences` JSON NULL,
-    `Hobbies` JSON NULL,
+    `Parking_Needs` ENUM('oneCar', 'twoCars', 'Not_required') NULL,
+    `Nearby_Facilities` ENUM('BTS_MRT', 'School', 'Hospital', 'Mall_Market', 'Park_Nature') NULL,
+    `Lifestyle_Preferences` ENUM('Work_from_Home', 'Have_Pets', 'Need_a_Home_Office', 'Like_Gardening') NULL,
+    `Special_Requirements` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -42,7 +41,7 @@ CREATE TABLE `Seller` (
     `National_ID` VARCHAR(191) NOT NULL,
     `Company_Name` VARCHAR(191) NOT NULL,
     `RealEstate_License` VARCHAR(191) NOT NULL,
-    `Status` ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL,
+    `Status` ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
     `StartTime` DATETIME(3) NULL,
     `isBooked` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -89,14 +88,27 @@ CREATE TABLE `PropertyPost` (
     `Land_Size` DOUBLE NOT NULL,
     `Bedrooms` INTEGER NOT NULL,
     `Bathroom` INTEGER NOT NULL,
-    `Floors` INTEGER NOT NULL,
     `Description` VARCHAR(191) NOT NULL,
     `Deposit_Amount` DOUBLE NOT NULL,
-    `Contract_Seller` VARCHAR(191) NOT NULL,
-    `Property_Images` VARCHAR(191) NOT NULL,
+    `Contract_Seller` VARCHAR(191) NULL,
     `LinkMap` VARCHAR(191) NULL,
     `Latitude` DOUBLE NOT NULL,
     `Longitude` DOUBLE NOT NULL,
+    `Province` VARCHAR(191) NOT NULL,
+    `District` VARCHAR(191) NOT NULL,
+    `Subdistrict` VARCHAR(191) NOT NULL,
+    `Address` VARCHAR(191) NOT NULL,
+    `Total_Rooms` INTEGER NULL,
+    `Year_Built` VARCHAR(191) NULL,
+    `Nearby_Landmarks` ENUM('BTS_MRT', 'School', 'Hospital', 'Mall_Market', 'Park') NULL,
+    `Additional_Amenities` ENUM('Swimming_Pool', 'Fitness_Center', 'Co_working_Space', 'Pet_Friendly') NULL,
+    `Parking_Space` INTEGER NULL,
+    `Sell_Rent` ENUM('Sell', 'Rent') NOT NULL,
+    `Other_related_expenses` ENUM('Ownership_transfer_fee', 'House_insurance_fee', 'Common_area_feeF') NOT NULL,
+    `Link_line` VARCHAR(191) NULL,
+    `Link_facbook` VARCHAR(191) NULL,
+    `Name` VARCHAR(191) NOT NULL,
+    `Phone` VARCHAR(191) NOT NULL,
     `sellerId` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
     `propertyTypeId` VARCHAR(191) NOT NULL,
@@ -213,8 +225,8 @@ CREATE TABLE `Image` (
     `url` VARCHAR(191) NOT NULL,
     `secure_url` VARCHAR(191) NOT NULL,
     `propertyPostId` VARCHAR(191) NOT NULL,
-    `buyerId` VARCHAR(191) NOT NULL,
-    `sellerId` VARCHAR(191) NOT NULL,
+    `buyerId` VARCHAR(191) NULL,
+    `sellerId` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -232,6 +244,18 @@ CREATE TABLE `Setdatetime` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `PasswordResetToken` (
+    `id` VARCHAR(191) NOT NULL,
+    `token` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+    `expiresAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `PasswordResetToken_token_key`(`token`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -302,10 +326,13 @@ ALTER TABLE `Notification` ADD CONSTRAINT `Notification_userId_fkey` FOREIGN KEY
 ALTER TABLE `Image` ADD CONSTRAINT `Image_propertyPostId_fkey` FOREIGN KEY (`propertyPostId`) REFERENCES `PropertyPost`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Image` ADD CONSTRAINT `Image_buyerId_fkey` FOREIGN KEY (`buyerId`) REFERENCES `Buyer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Image` ADD CONSTRAINT `Image_buyerId_fkey` FOREIGN KEY (`buyerId`) REFERENCES `Buyer`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Image` ADD CONSTRAINT `Image_sellerId_fkey` FOREIGN KEY (`sellerId`) REFERENCES `Seller`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Image` ADD CONSTRAINT `Image_sellerId_fkey` FOREIGN KEY (`sellerId`) REFERENCES `Seller`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Setdatetime` ADD CONSTRAINT `Setdatetime_sellerId_fkey` FOREIGN KEY (`sellerId`) REFERENCES `Seller`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `PasswordResetToken` ADD CONSTRAINT `PasswordResetToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

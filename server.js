@@ -4,7 +4,7 @@ const cors = require("cors")
 const morgan = require("morgan")
 const bodyParser = require("body-parser")
 const {readdirSync} = require("fs")
-
+require("dotenv").config()
 
 
 app.use(bodyParser.json())
