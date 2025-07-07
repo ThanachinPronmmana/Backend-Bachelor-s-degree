@@ -31,8 +31,9 @@ exports.preRegister = async (req, res) => {
     const token = jwt.sign({
       Email: Email, Password: hashedPassword, Phone, First_name, Last_name, userType
     }, process.env.SECRETKEY, { expiresIn: "10m" })
-    const link = `http://localhost:8200/verifyemail?token=${token}`
-    console.log("+"+token+"+")
+    
+    const link = `http://localhost:5173/verifyemail?token=${token}`
+    console.log("+" + token + "+")
     verifyemail(Email, link)
     // Register Buyer
 
@@ -46,9 +47,9 @@ exports.preRegister = async (req, res) => {
 };
 exports.verifyandregister = async (req, res) => {
   try {
-    const { 
+    const {
       token,
-      Age,
+      DateofBirth,
       Occaaption,
       Monthly_Income,
       Family_Size,
@@ -89,17 +90,17 @@ exports.verifyandregister = async (req, res) => {
       await prisma.user.create({
         data: {
           Email: Email,
-          Password:Password,
+          Password: Password,
           Phone: Phone,
           First_name: First_name,
           Last_name: Last_name,
           userType: "Buyer",
           Buyer: {
             create: {
-              Age: Age,
+              DateofBirth: DateofBirth ? new Date(DateofBirth) : null,
               Occaaption: Occaaption,
-              Monthly_Income: Monthly_Income,
-              Family_Size: Family_Size,
+              Monthly_Income: Monthly_Income ? Number(Monthly_Income) : null,
+              Family_Size: Family_Size ? Number(Family_Size) : null,
               Preferred_Province: Preferred_Province,
               Preferred_District: Preferred_District,
               Parking_Needs: Parking_Needs,
@@ -119,7 +120,7 @@ exports.verifyandregister = async (req, res) => {
       await prisma.user.create({
         data: {
           Email: Email,
-          Password:Password,
+          Password: Password,
           Phone: Phone,
           First_name: First_name,
           Last_name: Last_name,
@@ -141,7 +142,7 @@ exports.verifyandregister = async (req, res) => {
   } catch (err) {
     console.log(err)
     res.status(500).json({
-      message:"Server Error"
+      message: "Server Error"
     })
   }
 }
@@ -243,7 +244,7 @@ exports.forgotPassword = async (req, res) => {
     const token = jwt.sign({
       userId: user.id, email: user.Email
     }, process.env.SECRETKEY, { expiresIn: "10m" })
-    console.log("+"+token+"+")
+    console.log("+" + token + "+")
     await prisma.passwordResetToken.create({
       data: {
         token: token,

@@ -142,8 +142,8 @@ model Buyer {
   id                    String                 @id @default(cuid())
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String                 @unique
-  Age                   Int
-  Occaaption            String
+  DateofBirth           DateTime?
+  Occaaption            String?
   Monthly_Income        Float
   Family_Size           Int
   Preferred_Province    String
@@ -252,16 +252,17 @@ model PropertyPost {
 }
 
 model Deposit {
-  id             String          @id @default(cuid())
-  Post           PropertyPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id             String           @id @default(cuid())
+  Post           PropertyPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId         String
-  Buyer          Buyer           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  Buyer          Buyer            @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   buyerId        String
   Deposit_Status Status_Disposit
   Deposit_Amount Float
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   Negotiation    Negotiation?
+  DocumentUpload DocumentUpload[]
 }
 
 model DocumentType {
@@ -281,6 +282,8 @@ model DocumentUpload {
   buyerId        String
   DocumentType   DocumentType  @relation(fields: [typeId], references: [id])
   typeId         String
+  Deposit        Deposit?      @relation(fields: [depositId], references: [id])
+  depositId      String?
 }
 
 model Payment {
