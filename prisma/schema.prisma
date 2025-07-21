@@ -1,18 +1,13 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL_POSTGRES")
 }
 
+// Enums ใช้ได้เหมือนเดิม
 enum UserType {
   Buyer
   Seller
@@ -117,7 +112,6 @@ enum Lifestyle_Preferences {
   Like_Gardening
 }
 
-//confirm
 model User {
   id                 String               @id @default(cuid())
   First_name         String
@@ -137,7 +131,6 @@ model User {
   PasswordResetToken PasswordResetToken[]
 }
 
-//confirm
 model Buyer {
   id                    String                 @id @default(cuid())
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -161,7 +154,6 @@ model Buyer {
   Contract              Contract[]
 }
 
-//confirm
 model Seller {
   id                 String         @id @default(cuid())
   user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -203,21 +195,20 @@ model PropertyType {
   PropertyPost PropertyPost[]
 }
 
-//confirm
 model PropertyPost {
   id                     String                     @id @default(cuid())
-  Property_Name          String //in dfd
-  Price                  Float //in dfd
-  Usable_Area            Float //in dfd
-  Land_Size              Float //in dfd
-  Bedrooms               Int //in dfd
-  Bathroom               Int //in dfd
-  Description            String //in dfd
-  Deposit_Amount         Float //in dfd
-  Contract_Seller        String? //in dfd
-  LinkMap                String? //in dfd
-  Latitude               Float //in dfd
-  Longitude              Float //in dfd
+  Property_Name          String
+  Price                  Float
+  Usable_Area            Float
+  Land_Size              Float
+  Bedrooms               Int
+  Bathroom               Int
+  Description            String
+  Deposit_Amount         Float
+  Contract_Seller        String?
+  LinkMap                String?
+  Latitude               Float
+  Longitude              Float
   Province               String
   District               String
   Subdistrict            String
@@ -376,7 +367,7 @@ model Setdatetime {
 
 model PasswordResetToken {
   id        String   @id @default(cuid())
-  token     String   @unique @db.VarChar(512)
+  token     String   @unique
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime

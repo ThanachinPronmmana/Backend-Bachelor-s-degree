@@ -87,6 +87,7 @@ exports.verifyandregister = async (req, res) => {
       if (!Object.values(LifestylePreferencesEnum).includes(Lifestyle_Preferences)) {
         return res.status(400).json({ message: "Invalid Lifestyle_Preferences value" });
       }
+      
       await prisma.user.create({
         data: {
           Email: Email,
@@ -204,10 +205,11 @@ exports.login = async (req, res) => {
           Family_Size: user.Buyer.Family_Size,
           Preferred_Province: user.Buyer.Preferred_Province,
           Preferred_District: user.Buyer.Preferred_District,
+          DateofBirth:user.Buyer.DateofBirth
         }
       }
     }
-    console.log(payload)
+    console.log(payload) 
     jwt.sign(payload, process.env.SECRETKEY, {
       expiresIn: "7d"
     }, (err, token) => {
@@ -217,7 +219,9 @@ exports.login = async (req, res) => {
         })
       }
       res.json({
-        message: "Login Sucess"
+        message: "Login Sucess",
+        token,
+        user:payload
       })
     })
 
@@ -243,24 +247,25 @@ exports.forgotPassword = async (req, res) => {
 
     const token = jwt.sign({
       userId: user.id, email: user.Email
-    }, process.env.SECRETKEY, { expiresIn: "10m" })
-    console.log("+" + token + "+")
+    }, process.env.SECRETKEY, { expiresIn: "1h" })
+    
     await prisma.passwordResetToken.create({
       data: {
         token: token,
         userId: user.id,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000) // หมดอายุใน 10 นาที
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000) 
       }
     });
+    console.log("+" + token + "+")
 
 
-    const resetLink = `http://localhost:8200/resetpassword${token}`;
+    const resetLink = `http://localhost:5173/resetpassword?token=${token}`;
     await sendResetEmail(Email, resetLink);
 
-    res.json({ mssage: 'Reset link sent to email' });
+    res.json({ message: 'Reset link sent to your email.' });
 
   } catch (err) {
-    console.log(err)
+    console.error(err)
     res.status(500).json({
       message: "Server Error"
     })
