@@ -31,7 +31,7 @@ exports.preRegister = async (req, res) => {
     const token = jwt.sign({
       Email: Email, Password: hashedPassword, Phone, First_name, Last_name, userType
     }, process.env.SECRETKEY, { expiresIn: "10m" })
-    
+
     const link = `http://localhost:5173/verifyemail?token=${token}`
     console.log("+" + token + "+")
     verifyemail(Email, link)
@@ -87,7 +87,7 @@ exports.verifyandregister = async (req, res) => {
       if (!Object.values(LifestylePreferencesEnum).includes(Lifestyle_Preferences)) {
         return res.status(400).json({ message: "Invalid Lifestyle_Preferences value" });
       }
-      
+
       await prisma.user.create({
         data: {
           Email: Email,
@@ -160,15 +160,12 @@ exports.login = async (req, res) => {
       }
     })
     if (!user) {
-      return res.status(400).json({
-        message: "Password invalid"
-      })
+      return res.status(400).json({ message: "Email not found" });
     }
-    const is_Match = await bcrypt.compare(Password, user.Password)
+
+    const is_Match = await bcrypt.compare(Password, user.Password);
     if (!is_Match) {
-      return res.status(400).json({
-        message: "Password invalid"
-      })
+      return res.status(400).json({ message: "Password invalid" });
     }
     let payload
 
@@ -205,11 +202,11 @@ exports.login = async (req, res) => {
           Family_Size: user.Buyer.Family_Size,
           Preferred_Province: user.Buyer.Preferred_Province,
           Preferred_District: user.Buyer.Preferred_District,
-          DateofBirth:user.Buyer.DateofBirth
+          DateofBirth: user.Buyer.DateofBirth
         }
       }
     }
-    console.log(payload) 
+    console.log(payload)
     jwt.sign(payload, process.env.SECRETKEY, {
       expiresIn: "7d"
     }, (err, token) => {
@@ -221,7 +218,7 @@ exports.login = async (req, res) => {
       res.json({
         message: "Login Sucess",
         token,
-        user:payload
+        user: payload
       })
     })
 
@@ -248,12 +245,12 @@ exports.forgotPassword = async (req, res) => {
     const token = jwt.sign({
       userId: user.id, email: user.Email
     }, process.env.SECRETKEY, { expiresIn: "1h" })
-    
+
     await prisma.passwordResetToken.create({
       data: {
         token: token,
         userId: user.id,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000) 
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
       }
     });
     console.log("+" + token + "+")

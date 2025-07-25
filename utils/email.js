@@ -29,6 +29,6 @@ exports.verifyemail = async (to, link) => {
     to,
     subject: "Please verify your email",
     html: `<p>Click the link below to verify your email:</p>
-    <a href="${link}">${link}</a>`,
+    <a href="${link}">Verify Email</a>`,
   })
 }

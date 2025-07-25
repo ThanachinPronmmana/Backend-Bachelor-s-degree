@@ -129,6 +129,7 @@ model User {
   Contract           Contract[]
   Notification       Notification[]
   PasswordResetToken PasswordResetToken[]
+  Image              Image[]
 }
 
 model Buyer {
@@ -349,6 +350,8 @@ model Image {
   buyerId        String?
   Seller         Seller?       @relation(fields: [sellerId], references: [id])
   sellerId       String?
+  user           User?         @relation(fields: [userId], references: [id])
+  userId         String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 }

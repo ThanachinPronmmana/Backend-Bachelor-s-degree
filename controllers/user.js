@@ -220,7 +220,35 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.updateimage
+exports.updateimage = async(req,res)=>{
+  try{
+     const {id} = req.params;
+     const file = req.file
+     if(!file){
+      return res.status(400).json({
+        message:"No image uploaded"
+      })
+     }
+     const image = await prisma.image.create({
+      data:{
+        asset_id:file.asset_id,
+        public_id:file.public_id,
+        url:file.url,
+        secure_url:file.secure_url,
+        userId:id
+      }
+     })
+     res.status(201).json({
+      message:"Image uploaded successfully",
+      image,
+     })
+  }catch(err){
+    console.log(err)
+    res.status(500).json({
+      message:"Server Error"
+    })
+  }
+}
 
 
 
