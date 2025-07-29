@@ -50,7 +50,7 @@ exports.verifyandregister = async (req, res) => {
     const {
       token,
       DateofBirth,
-      Occaaption,
+      Occupation,
       Monthly_Income,
       Family_Size,
       Preferred_Province,
@@ -99,7 +99,7 @@ exports.verifyandregister = async (req, res) => {
           Buyer: {
             create: {
               DateofBirth: DateofBirth ? new Date(DateofBirth) : null,
-              Occaaption: Occaaption,
+              Occupation: Occupation,
               Monthly_Income: Monthly_Income ? Number(Monthly_Income) : null,
               Family_Size: Family_Size ? Number(Family_Size) : null,
               Preferred_Province: Preferred_Province,
@@ -156,7 +156,7 @@ exports.login = async (req, res) => {
       },
       include: {
         Seller: true,
-        Buyer: true
+        Buyer: true,
       }
     })
     if (!user) {
@@ -194,10 +194,11 @@ exports.login = async (req, res) => {
         Phone: user.Phone,
         First_name: user.First_name,
         Last_name: user.Last_name,
+        image:user.image,
         Buyer: {
           id: user.Buyer.id,
           Age: user.Buyer.Age,
-          Occaaption: user.Buyer.Occaaption,
+          Occupation: user.Buyer.Occupation,
           Monthly_Income: user.Buyer.Monthly_Income,
           Family_Size: user.Buyer.Family_Size,
           Preferred_Province: user.Buyer.Preferred_Province,

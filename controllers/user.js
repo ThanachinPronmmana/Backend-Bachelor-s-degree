@@ -1,6 +1,6 @@
 const prisma = require("../config/prisma");
 const { Status_Seller, UserType } = require("@prisma/client");
-
+const cloudinary = require("../utils/cloudinary")
 exports.updateStatusSeller = async (req, res) => {
   try {
     const { Status } = req.body;
@@ -123,10 +123,11 @@ exports.getUserProfile = async (req, res) => {
         First_name: true,
         Last_name: true,
         Email: true,
+        image:true,
         Buyer: {
           select: {
             DateofBirth: true,
-            Occaaption: true,
+            Occupation: true,
             Monthly_Income: true,
             Family_Size: true,
             Parking_Needs: true,
@@ -161,7 +162,7 @@ exports.updateUser = async (req, res) => {
       Email,
       Phone,
       DateofBirth,
-      Occaaption,
+      Occupation,
       Monthly_Income,
       Family_Size,
       Parking_Needs,
@@ -179,7 +180,7 @@ exports.updateUser = async (req, res) => {
 
     const buyerDataToUpdate = {};
     if (DateofBirth !== undefined) buyerDataToUpdate.DateofBirth = new Date(DateofBirth);
-    if (Occaaption !== undefined) buyerDataToUpdate.Occaaption = Occaaption;
+    if (Occupation !== undefined) buyerDataToUpdate.Occupation = Occupation;
     if (Monthly_Income !== undefined) buyerDataToUpdate.Monthly_Income = Monthly_Income;
     if (Family_Size !== undefined) buyerDataToUpdate.Family_Size = Family_Size;
     if (Parking_Needs !== undefined) buyerDataToUpdate.Parking_Needs = Parking_Needs;
@@ -202,7 +203,7 @@ exports.updateUser = async (req, res) => {
       }
     });
 
-    
+
     if (Updateuser.Password) {
       delete Updateuser.Password;
     }
@@ -220,35 +221,44 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.updateimage = async(req,res)=>{
-  try{
-     const {id} = req.params;
-     const file = req.file
-     if(!file){
-      return res.status(400).json({
-        message:"No image uploaded"
-      })
-     }
-     const image = await prisma.image.create({
-      data:{
-        asset_id:file.asset_id,
-        public_id:file.public_id,
-        url:file.url,
-        secure_url:file.secure_url,
-        userId:id
-      }
-     })
-     res.status(201).json({
-      message:"Image uploaded successfully",
-      image,
-     })
-  }catch(err){
-    console.log(err)
+exports.updateimage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    const imageUrl = file.path || file.url;
+    const publicId = file.filename || file.public_id;
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        image: imageUrl,
+        publicId: publicId, 
+      },
+    });
+
+    res.status(200).json({
+      message: "Image uploaded and user updated successfully",
+      image: {
+        url: updatedUser.image,
+        publicId: updatedUser.publicId,
+      },
+    });
+
+  } catch (err) {
+    console.error("Upload image error:", err);
     res.status(500).json({
-      message:"Server Error"
-    })
+      message: err.message || "Internal Server Error",
+    });
   }
-}
+};
+
+
+
 
 
 
