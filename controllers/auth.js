@@ -194,18 +194,23 @@ exports.login = async (req, res) => {
         Phone: user.Phone,
         First_name: user.First_name,
         Last_name: user.Last_name,
-        image:user.image,
+        image: user.image,
         Buyer: {
           id: user.Buyer.id,
           Age: user.Buyer.Age,
           Occupation: user.Buyer.Occupation,
           Monthly_Income: user.Buyer.Monthly_Income,
           Family_Size: user.Buyer.Family_Size,
-          Preferred_Province: user.Buyer.Preferred_Province,
-          Preferred_District: user.Buyer.Preferred_District,
-          DateofBirth: user.Buyer.DateofBirth
+          Preferred_Province: user.Buyer.Preferred_Province,   // ✅ ต้องเพิ่ม
+          Preferred_District: user.Buyer.Preferred_District,   // ✅ ต้องเพิ่ม
+          Parking_Needs: user.Buyer.Parking_Needs,             // ✅ ถ้าใช้ใน form
+          Nearby_Facilities: user.Buyer.Nearby_Facilities,     // ✅ ถ้าใช้ใน form
+          Lifestyle_Preferences: user.Buyer.Lifestyle_Preferences,
+          Special_Requirements: user.Buyer.Special_Requirements,
+          DateofBirth: user.Buyer.DateofBirth,
+          image: user.Buyer.image, // ✅ ถ้าเก็บใน Buyer table
         }
-      }
+      };
     }
     console.log(payload)
     jwt.sign(payload, process.env.SECRETKEY, {

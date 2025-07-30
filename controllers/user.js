@@ -169,6 +169,7 @@ exports.updateUser = async (req, res) => {
       Nearby_Facilities,
       Lifestyle_Preferences,
       Special_Requirements,
+      image
     } = req.body;
 
     // กรองเฉพาะฟิลด์ที่ส่งมา
@@ -177,7 +178,8 @@ exports.updateUser = async (req, res) => {
     if (Last_name !== undefined) dataToUpdate.Last_name = Last_name;
     if (Email !== undefined) dataToUpdate.Email = Email;
     if (Phone !== undefined) dataToUpdate.Phone = Phone;
-
+    if (image !== undefined) dataToUpdate.image = image; 
+    
     const buyerDataToUpdate = {};
     if (DateofBirth !== undefined) buyerDataToUpdate.DateofBirth = new Date(DateofBirth);
     if (Occupation !== undefined) buyerDataToUpdate.Occupation = Occupation;
@@ -187,7 +189,7 @@ exports.updateUser = async (req, res) => {
     if (Nearby_Facilities !== undefined) buyerDataToUpdate.Nearby_Facilities = Nearby_Facilities;
     if (Lifestyle_Preferences !== undefined) buyerDataToUpdate.Lifestyle_Preferences = Lifestyle_Preferences;
     if (Special_Requirements !== undefined) buyerDataToUpdate.Special_Requirements = Special_Requirements;
-
+    
     // ถ้ามีข้อมูล Buyer ต้องการอัปเดต
     if (Object.keys(buyerDataToUpdate).length > 0) {
       dataToUpdate.Buyer = {
@@ -198,6 +200,7 @@ exports.updateUser = async (req, res) => {
     const Updateuser = await prisma.user.update({
       where: { id },
       data: dataToUpdate,
+      
       include: {
         Buyer: true
       }

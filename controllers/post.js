@@ -37,7 +37,6 @@ exports.createpost = async(req,res)=>{
                 Total_Rooms,
                 Year_Built,
                 Nearby_Landmarks,
-
                 Image:{
                     create:image.map((img)=>({
                         asset_id:img.asset_id,
