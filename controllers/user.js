@@ -110,41 +110,41 @@ exports.listUserBuyer = async (req, res) => {
     })
   }
 }
-exports.getSellerProfile = async (req,res)=>{
-  try{
-    const {id} = req.params
+exports.getSellerProfile = async (req, res) => {
+  try {
+    const { id } = req.params
     const seller = await prisma.user.findUnique({
-      where:{
+      where: {
         id
       },
-      select:{
+      select: {
         id: true,
         First_name: true,
         Last_name: true,
         Email: true,
-        image:true,
-        Phone:true,
-          Seller:{
-            select:{
-              National_ID:true,
-              Company_Name:true,
-              RealEstate_License:true,
-              Status:true
+        image: true,
+        Phone: true,
+        Seller: {
+          select: {
+            National_ID: true,
+            Company_Name: true,
+            RealEstate_License: true,
+            Status: true
           }
         }
       }
-      
+
     })
-    if(!seller){
+    if (!seller) {
       return res.status(404).json({
-        message:"User not found"
+        message: "User not found"
       })
     }
     res.json(seller)
-  }catch(err){
+  } catch (err) {
     console.log(err)
     res.status(500).json({
-      message:"Server Error"
+      message: "Server Error"
     })
   }
 }
@@ -161,8 +161,8 @@ exports.getUserProfile = async (req, res) => {
         First_name: true,
         Last_name: true,
         Email: true,
-        image:true,
-        Phone:true,
+        image: true,
+        Phone: true,
         Buyer: {
           select: {
             DateofBirth: true,
@@ -173,8 +173,8 @@ exports.getUserProfile = async (req, res) => {
             Nearby_Facilities: true,
             Lifestyle_Preferences: true,
             Special_Requirements: true,
-            Preferred_District:true,
-            Preferred_Province:true
+            Preferred_District: true,
+            Preferred_Province: true
           }
         }
       }
@@ -194,9 +194,9 @@ exports.getUserProfile = async (req, res) => {
     })
   }
 }
-exports.updateSeller = async(req,res)=>{
-  try{
-    const {id}=req.params
+exports.updateSeller = async (req, res) => {
+  try {
+    const { id } = req.params
     const {
       First_name,
       Last_name,
@@ -209,42 +209,44 @@ exports.updateSeller = async(req,res)=>{
     } = req.body
 
     const dataToupdate = {}
-    if(First_name !== undefined) dataToupdate.First_name = First_name
-    if(Last_name !== undefined) dataToupdate.Last_name = Last_name
-    if(Email !== undefined) dataToupdate.Email = Email
-    if(Phone !== undefined) dataToupdate.Phone = Phone
-    if(image !== undefined) dataToupdate.image = image
+    if (First_name !== undefined) dataToupdate.First_name = First_name
+    if (Last_name !== undefined) dataToupdate.Last_name = Last_name
+    if (Email !== undefined) dataToupdate.Email = Email
+    if (Phone !== undefined) dataToupdate.Phone = Phone
+    if (image !== undefined) dataToupdate.image = image
 
     const sellerDataToupdate = {}
 
-    if(National_ID !== undefined) sellerDataToupdate.National_ID = National_ID
-    if(Company_Name !== undefined) sellerDataToupdate.Company_Name = Company_Name
-    if(RealEstate_License !== undefined) sellerDataToupdate.RealEstate_License = RealEstate_License
+    if (National_ID !== undefined) sellerDataToupdate.National_ID = National_ID
+    if (Company_Name !== undefined) sellerDataToupdate.Company_Name = Company_Name
+    if (RealEstate_License !== undefined) sellerDataToupdate.RealEstate_License = RealEstate_License
 
-    if(Object.keys(sellerDataToupdate).length > 0){
-      dataToupdate.Buyer = {
-        update:sellerDataToupdate
+    if (Object.keys(sellerDataToupdate).length > 0) {
+      dataToupdate.Seller = {
+        update: sellerDataToupdate
       }
     }
 
     const Updateseller = await prisma.user.update({
-      where:{
+      where: {
         id
-      },include:{
-        Buyer:true
+      },
+      data: dataToupdate,
+      include: {
+        Seller: true
       }
     })
-    if(Updateseller.Password){
+    if (Updateseller.Password) {
       delete Updateseller.Password
     }
     res.json({
       message: "Seller Updated Successfully",
-      user:Updateseller
+      user: Updateseller
     })
-  }catch(err){
+  } catch (err) {
     console.log(err)
     res.status(500).json({
-      message:"Server Error"
+      message: "Server Error"
     })
   }
 }
@@ -275,7 +277,7 @@ exports.updateUser = async (req, res) => {
     if (Last_name !== undefined) dataToUpdate.Last_name = Last_name;
     if (Email !== undefined) dataToUpdate.Email = Email;
     if (Phone !== undefined) dataToUpdate.Phone = Phone;
-    if (image !== undefined) dataToUpdate.image = image; 
+    if (image !== undefined) dataToUpdate.image = image;
 
     const buyerDataToUpdate = {};
     if (DateofBirth !== undefined) buyerDataToUpdate.DateofBirth = new Date(DateofBirth);
@@ -286,8 +288,8 @@ exports.updateUser = async (req, res) => {
     if (Nearby_Facilities !== undefined) buyerDataToUpdate.Nearby_Facilities = Nearby_Facilities;
     if (Lifestyle_Preferences !== undefined) buyerDataToUpdate.Lifestyle_Preferences = Lifestyle_Preferences;
     if (Special_Requirements !== undefined) buyerDataToUpdate.Special_Requirements = Special_Requirements;
-    if(Preferred_Province !== undefined) buyerDataToUpdate.Preferred_Province = Preferred_Province;
-    if(Preferred_District !== undefined) buyerDataToUpdate.Preferred_District = Preferred_District;
+    if (Preferred_Province !== undefined) buyerDataToUpdate.Preferred_Province = Preferred_Province;
+    if (Preferred_District !== undefined) buyerDataToUpdate.Preferred_District = Preferred_District;
     // ถ้ามีข้อมูล Buyer ต้องการอัปเดต
     if (Object.keys(buyerDataToUpdate).length > 0) {
       dataToUpdate.Buyer = {
@@ -298,7 +300,7 @@ exports.updateUser = async (req, res) => {
     const Updateuser = await prisma.user.update({
       where: { id },
       data: dataToUpdate,
-      
+
       include: {
         Buyer: true
       }
@@ -338,7 +340,7 @@ exports.updateimage = async (req, res) => {
       where: { id },
       data: {
         image: imageUrl,
-        publicId: publicId, 
+        publicId: publicId,
       },
     });
 
