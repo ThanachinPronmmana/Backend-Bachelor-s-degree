@@ -4,7 +4,7 @@ exports.create = async (req, res) => {
         const {name} = req.body
         const category = await prisma.category.create({
             data:{
-                name:name,
+                name:name.toLowerCase(),
             }
         })
         res.send(category)
@@ -14,5 +14,13 @@ exports.create = async (req, res) => {
         res.status(500).json({
             message:"Server Error"
         })
+    }
+}
+exports.list = async(req,res)=>{
+    try{
+        const category = await prisma.category.findMany()
+          res.json(category)
+    }catch(err){
+
     }
 }

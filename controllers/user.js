@@ -148,6 +148,44 @@ exports.getSellerProfile = async (req,res)=>{
     })
   }
 }
+exports.getSellerProfile = async (req, res) => {
+  try {
+    const { id } = req.params
+    const seller = await prisma.user.findUnique({
+      where: {
+        id
+      },
+      select: {
+        id: true,
+        First_name: true,
+        Last_name: true,
+        Email: true,
+        image: true,
+        Phone: true,
+        Seller: {
+          select: {
+            National_ID: true,
+            Company_Name: true,
+            RealEstate_License: true,
+            Status: true
+          }
+        }
+      }
+
+    })
+    if (!seller) {
+      return res.status(404).json({
+        message: "User not found"
+      })
+    }
+    res.json(seller)
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      message: "Server Error"
+    })
+  }
+}
 exports.getUserProfile = async (req, res) => {
   try {
     const { id } = req.params
@@ -161,8 +199,8 @@ exports.getUserProfile = async (req, res) => {
         First_name: true,
         Last_name: true,
         Email: true,
-        image:true,
-        Phone:true,
+        image: true,
+        Phone: true,
         Buyer: {
           select: {
             DateofBirth: true,
@@ -173,8 +211,8 @@ exports.getUserProfile = async (req, res) => {
             Nearby_Facilities: true,
             Lifestyle_Preferences: true,
             Special_Requirements: true,
-            Preferred_District:true,
-            Preferred_Province:true
+            Preferred_District: true,
+            Preferred_Province: true
           }
         }
       }
@@ -301,7 +339,7 @@ exports.updateUser = async (req, res) => {
     const Updateuser = await prisma.user.update({
       where: { id },
       data: dataToUpdate,
-      
+
       include: {
         Buyer: true
       }
@@ -341,7 +379,7 @@ exports.updateimage = async (req, res) => {
       where: { id },
       data: {
         image: imageUrl,
-        publicId: publicId, 
+        publicId: publicId,
       },
     });
 
@@ -360,6 +398,94 @@ exports.updateimage = async (req, res) => {
     });
   }
 };
+exports.deposit = async(req,res)=>{
+  try{
+
+  }catch(err){
+
+  }
+}
+exports.getpostBySeller= async(req,res)=>{
+  try{
+    const {id} = req.params
+    const user = await prisma.user.findFirst({
+      where: {id}
+    })
+    if(!user){
+      return res.status(404).json({
+        message:"User not found"
+      })
+    }
+    const posts = await prisma.propertyPost.findMany({
+      where:{
+        userId:id
+      },
+      select:{
+        id:true,
+        Property_Name:true,
+        Price:true,
+        Status_post:true,
+        Address:true,
+        Province:true,
+        District:true,
+        Image:true,
+        Category:true,
+        
+      }
+    })
+    res.json({
+      message:"Success",
+      posts
+    })
+  }catch(err){
+    console.log(err)
+    res.status(500).json({
+      message:"Server Error"
+    })
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 GET /api/user → ดูผู้ใช้ทั้งหมด
 

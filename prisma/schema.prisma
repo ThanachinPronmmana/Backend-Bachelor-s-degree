@@ -112,6 +112,11 @@ enum Lifestyle_Preferences {
   Like_Gardening
 }
 
+enum Status_post {
+  PENDING
+  CONFIRMED
+}
+
 model User {
   id                 String               @id @default(cuid())
   First_name         String
@@ -124,13 +129,14 @@ model User {
   updatedAt          DateTime             @updatedAt
   Buyer              Buyer?
   Seller             Seller?
-  PropertyPost       PropertyPost?
+  PropertyPost       PropertyPost[]
   Payment            Payment[]
   Contract           Contract[]
   Notification       Notification[]
   PasswordResetToken PasswordResetToken[]
   image              String?
   publicId           String?
+  Deposit            Deposit[]
 }
 
 model Buyer {
@@ -149,40 +155,37 @@ model Buyer {
   Special_Requirements  String?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  Deposit               Deposit[]
   DocumentUpload        DocumentUpload[]
   Negotiation           Negotiation[]
-  Image                 Image[]
   Contract              Contract[]
 }
 
 model Seller {
-  id                 String         @id @default(cuid())
-  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId             String         @unique
+  id                 String        @id @default(cuid())
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String        @unique
   National_ID        String
   Company_Name       String
   RealEstate_License String
-  Status             Status_Seller  @default(PENDING)
+  Status             Status_Seller @default(PENDING)
   StartTime          DateTime?
-  isBooked           Boolean        @default(false)
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  PropertyPost       PropertyPost[]
+  isBooked           Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
   Negotiation        Negotiation[]
   Contract           Contract[]
-  Image              Image[]
   Datetime           Datetime[]
+  PropertyPost       PropertyPost? @relation(fields: [propertyPostId], references: [id])
+  propertyPostId     String?
 }
 
 model Location {
-  id           String         @id @default(cuid())
+  id           String   @id @default(cuid())
   Province     String
   District     String
   Sub_District String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  PropertyPost PropertyPost[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Category {
@@ -197,6 +200,7 @@ model PropertyType {
   PropertyPost PropertyPost[]
 }
 
+//เอา sellerId และ location ออก
 model PropertyPost {
   id                     String                     @id @default(cuid())
   Property_Name          String
@@ -209,8 +213,8 @@ model PropertyPost {
   Deposit_Amount         Float
   Contract_Seller        String?
   LinkMap                String?
-  Latitude               Float
-  Longitude              Float
+  Latitude               Float?
+  Longitude              Float?
   Province               String
   District               String
   Subdistrict            String
@@ -224,32 +228,30 @@ model PropertyPost {
   Other_related_expenses Other_related_expenses
   Link_line              String?
   Link_facbook           String?
-  Name                   String
+  Name                   String?
   Phone                  String
-  Seller                 Seller                     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  sellerId               String                     @unique
+  Status_post            Status_post                @default(PENDING)
   user                   User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                 String                     @unique
-  Propertytype           PropertyType               @relation(fields: [propertyTypeId], references: [id])
-  propertyTypeId         String
-  Category               Category                   @relation(fields: [categoryId], references: [id])
-  categoryId             String
-  Location               Location                   @relation(fields: [locationId], references: [id])
-  locationId             String
+  userId                 String
+  Propertytype           PropertyType?              @relation(fields: [propertyTypeId], references: [id])
+  propertyTypeId         String?
+  Category               Category?                  @relation(fields: [categoryId], references: [id])
+  categoryId             String?
   Deposit                Deposit[]
   createdAt              DateTime                   @default(now())
   updatedAt              DateTime                   @updatedAt
   Payment                Payment[]
   Negotiation            Negotiation[]
   Image                  Image[]
+  Seller                 Seller[]
 }
-
+//เปรียบเหมือนตะกร้าสินค้า
 model Deposit {
   id             String           @id @default(cuid())
   Post           PropertyPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId         String
-  Buyer          Buyer            @relation(fields: [buyerId], references: [id], onDelete: Cascade)
-  buyerId        String
+  User           User?            @relation(fields: [userId], references: [id])
+  userId         String?
   Deposit_Status Status_Disposit
   Deposit_Amount Float
   createdAt      DateTime         @default(now())
@@ -341,16 +343,12 @@ model Notification {
 
 model Image {
   id             String        @id @default(cuid())
-  asset_id       String
-  public_id      String
+  asset_id       String?
+  public_id      String?
   url            String
-  secure_url     String
+  secure_url     String?
   PropertyPost   PropertyPost? @relation(fields: [propertyPostId], references: [id])
   propertyPostId String?
-  Buyer          Buyer?        @relation(fields: [buyerId], references: [id]) //**
-  buyerId        String?
-  Seller         Seller?       @relation(fields: [sellerId], references: [id]) //**
-  sellerId       String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 }
