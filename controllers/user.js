@@ -194,9 +194,9 @@ exports.getUserProfile = async (req, res) => {
     })
   }
 }
-exports.updateSeller = async(req,res)=>{
-  try{
-    const {id}=req.params
+exports.updateSeller = async (req, res) => {
+  try {
+    const { id } = req.params;
     const {
       First_name,
       Last_name,
@@ -205,49 +205,52 @@ exports.updateSeller = async(req,res)=>{
       National_ID,
       Company_Name,
       RealEstate_License,
-      image
-    } = req.body
+      image,
+    } = req.body;
 
-    const dataToupdate = {}
-    if(First_name !== undefined) dataToupdate.First_name = First_name
-    if(Last_name !== undefined) dataToupdate.Last_name = Last_name
-    if(Email !== undefined) dataToupdate.Email = Email
-    if(Phone !== undefined) dataToupdate.Phone = Phone
-    if(image !== undefined) dataToupdate.image = image
+    const dataToupdate = {};
+    if (First_name !== undefined) dataToupdate.First_name = First_name;
+    if (Last_name !== undefined) dataToupdate.Last_name = Last_name;
+    if (Email !== undefined) dataToupdate.Email = Email;
+    if (Phone !== undefined) dataToupdate.Phone = Phone;
+    if (image !== undefined) dataToupdate.image = image;
 
-    const sellerDataToupdate = {}
+    const sellerDataToupdate = {};
+    if (National_ID !== undefined) sellerDataToupdate.National_ID = National_ID;
+    if (Company_Name !== undefined) sellerDataToupdate.Company_Name = Company_Name;
+    if (RealEstate_License !== undefined) sellerDataToupdate.RealEstate_License = RealEstate_License;
 
-    if(National_ID !== undefined) sellerDataToupdate.National_ID = National_ID
-    if(Company_Name !== undefined) sellerDataToupdate.Company_Name = Company_Name
-    if(RealEstate_License !== undefined) sellerDataToupdate.RealEstate_License = RealEstate_License
-
-    if(Object.keys(sellerDataToupdate).length > 0){
-      dataToupdate.Buyer = {
-        update:sellerDataToupdate
-      }
+    if (Object.keys(sellerDataToupdate).length > 0) {
+      dataToupdate.Seller = {
+        update: sellerDataToupdate
+      };
     }
 
     const Updateseller = await prisma.user.update({
-      where:{
-        id
-      },include:{
-        Buyer:true
+      where: { id },
+      data: dataToupdate,
+      include: {
+        Seller: true
       }
-    })
-    if(Updateseller.Password){
-      delete Updateseller.Password
+    });
+
+    if (Updateseller.Password) {
+      delete Updateseller.Password;
     }
+
     res.json({
       message: "Seller Updated Successfully",
-      user:Updateseller
-    })
-  }catch(err){
-    console.log(err)
+      user: Updateseller
+    });
+  } catch (err) {
+    console.log(err);
     res.status(500).json({
-      message:"Server Error"
-    })
+      message: "Server Error"
+    });
   }
-}
+};
+
+
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -357,49 +360,6 @@ exports.updateimage = async (req, res) => {
     });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
 GET /api/user → ดูผู้ใช้ทั้งหมด
 
