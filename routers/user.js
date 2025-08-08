@@ -9,7 +9,8 @@ const {
     updateUser,
     updateimage,
     getSellerProfile,
-    updateSeller
+    updateSeller,
+    getpostBySeller
 } = require("../controllers/user")
 const upload = require("../Middlewares/upload")
 
@@ -19,6 +20,7 @@ router.post("/user/:id", deleteUser)
 router.get("/userSeller", listUserSeller)
 router.get("/profileseller/:id",getSellerProfile)
 router.patch("/profileseller/:id",updateSeller)
+router.get("/post/seller/:id",getpostBySeller)
 //Buyer
 router.get("/userBuyer", listUserBuyer)
 router.get("/profile/:id", getUserProfile)

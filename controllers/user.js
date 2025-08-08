@@ -359,7 +359,52 @@ exports.updateimage = async (req, res) => {
     });
   }
 };
+exports.deposit = async(req,res)=>{
+  try{
 
+  }catch(err){
+
+  }
+}
+exports.getpostBySeller= async(req,res)=>{
+  try{
+    const {id} = req.params
+    const user = await prisma.user.findFirst({
+      where: {id}
+    })
+    if(!user){
+      return res.status(404).json({
+        message:"User not found"
+      })
+    }
+    const posts = await prisma.propertyPost.findMany({
+      where:{
+        userId:id
+      },
+      select:{
+        id:true,
+        Property_Name:true,
+        Price:true,
+        Status_post:true,
+        Address:true,
+        Province:true,
+        District:true,
+        Image:true,
+        Category:true,
+        
+      }
+    })
+    res.json({
+      message:"Success",
+      posts
+    })
+  }catch(err){
+    console.log(err)
+    res.status(500).json({
+      message:"Server Error"
+    })
+  }
+}
 
 
 

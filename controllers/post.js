@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const { connect } = require("../routers/user");
+const cloudinary = require("../utils/cloudinary");
 exports.createpost = async (req, res) => {
     try {
         const {
@@ -30,7 +31,8 @@ exports.createpost = async (req, res) => {
             Phone,
             Bathroom,
             Propertytype,
-            Other_related_expenses
+            Other_related_expenses,
+            categoryId
         } = req.body
         const { userId } = req.params
         const files = req.files;
@@ -46,7 +48,7 @@ exports.createpost = async (req, res) => {
                 Total_Rooms: parseInt(Total_Rooms),
                 Year_Built,
                 Nearby_Landmarks,
-                Land_Size:parseFloat(Land_Size),
+                Land_Size: parseFloat(Land_Size),
                 Bedrooms: parseInt(Bedrooms),
                 Bathroom: parseInt(Bathroom),
                 Description,
@@ -64,6 +66,11 @@ exports.createpost = async (req, res) => {
                 Latitude: parseFloat(Latitude),
                 Longitude: parseFloat(Longitude),
                 Other_related_expenses,
+                Category: {
+                    connect: {
+                        id: categoryId
+                    }
+                },
                 user: {
                     connect: {
                         id: userId
@@ -90,25 +97,232 @@ exports.createpost = async (req, res) => {
         })
     }
 }
-exports.list = async(req,res)=>{
+exports.list = async (req, res) => {
     try {
-        
-    }catch(err){
+
+    } catch (err) {
 
     }
 }
-exports.listbycategory = async(req,res)=>{
+exports.listbycategory = async (req, res) => {
 
 }
-exports.listbyPrice = async(req,res)=>{
+exports.listbyPrice = async (req, res) => {
 
 }
-exports.listbyQuery = async(req,res)=>{
-    
-}
-exports.searchFilters = async(req,res)=>{
+exports.listbyQuery = async (req, res) => {
 
 }
-exports.removepost = async(req,res)=>{
+exports.searchFilters = async (req, res) => {
 
 }
+exports.getbycategory = async (req, res) => {
+    try {
+        const { categoryId } = req.params
+        const properties = await prisma.propertyPost.findMany({
+            where: {
+                categoryId
+            },
+            include: {
+                Image: true,
+                Category: true,
+                user: true
+            }
+        })
+        res.json(properties)
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+exports.getPost = async (req, res) => {
+    try {
+        const { id } = req.params
+        const images = await prisma.image.findMany({
+            where: { id }
+        });
+        console.log(images);
+        const post = await prisma.propertyPost.findUnique({
+            where: {
+                id
+            },
+            select: {
+                Property_Name: true,
+                Province: true,
+                Deposit: true,
+                Subdistrict: true,
+                Address: true,
+                Category: true,
+                Usable_Area: true,
+                Total_Rooms: true,
+                Year_Built: true,
+                Nearby_Landmarks: true,
+                Image: {
+                    select: {
+                        url: true,
+                        secure_url: true
+                    }
+                },
+                userId: true,
+                Land_Size: true,
+                Bedrooms: true,
+                Bathroom: true,
+                Description: true,
+                Deposit_Amount: true,
+                LinkMap: true,
+                Price: true,
+                Additional_Amenities: true,
+                Parking_Space: true,
+                Sell_Rent: true,
+                user: {
+                    select: {
+                        First_name: true,
+                        Last_name: true
+                    }
+                },
+                Phone: true,
+                Latitude: true,
+                Longitude: true,
+                Other_related_expenses: true,
+                Category: true,
+                Status_post: true,
+
+            }
+
+        })
+        res.json(post)
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+exports.removepost = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const post = await prisma.propertyPost.findUnique({
+            where: { id },
+        });
+
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        const images = await prisma.image.findMany({
+            where: { propertyPostId: id },
+        });
+
+
+        // for (const image of images) {
+        //     if (image.public_id) {
+        //         await cloudinary.uploader.destroy(image.public_id);
+        //     }
+        // }
+
+        const deleteImagePromises = images.map(img =>{
+            if(img.public_id){
+                return cloudinary.uploader.destroy(img.public_id)
+            }
+        })
+        await Promise.all(deleteImagePromises)
+
+        await prisma.deposit.deleteMany({
+            where: { postId: id },
+        });
+
+
+        await prisma.image.deleteMany({
+            where: { propertyPostId: id },
+        });
+
+
+        const deletedPost = await prisma.propertyPost.delete({
+            where: { id },
+        });
+
+
+        res.json({
+            message: "Post and related data deleted successfully",
+            deletedPost,
+            deletedImages: images,
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+}
+exports.updatePost = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!req.body || typeof req.body !== "object") {
+            return res.status(400).json({ message: "Invalid or missing request body" });
+        }
+
+        // ดึง post เดิมมาก่อน
+        const existingPost = await prisma.propertyPost.findUnique({
+            where: { id },
+        });
+
+        if (!existingPost) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        const allowedFields = [
+            "Property_Name", "Price", "Usable_Area", "Land_Size", "Bedrooms", "Description",
+            "Deposit_Amount", "Contract_Seller", "LinkMap", "Latitude", "Longitude",
+            "Province", "District", "Subdistrict", "Address", "Total_Rooms", "Year_Built",
+            "Nearby_Landmarks", "Additional_Amenities", "Parking_Space", "Sell_Rent",
+            "Link_line", "Link_facbook", "Name", "Phone", "Bathroom", "Propertytype",
+            "Other_related_expenses", "categoryId"
+        ];
+
+        const dataToUpdate = {};
+
+        for (const field of allowedFields) {
+            const incomingValue = req.body[field];
+            
+            if (incomingValue === undefined || incomingValue === null || incomingValue === "") {
+                dataToUpdate[field] = existingPost[field];
+            } else {
+                dataToUpdate[field] = incomingValue;
+            }
+        }
+
+        const updatedPost = await prisma.propertyPost.update({
+            where: { id },
+            data: dataToUpdate,
+        });
+
+        
+        let updateImage = null;
+        if (req.files && req.files.length > 0) {
+            await prisma.image.deleteMany({
+                where: { propertyPostId: id },
+            });
+
+            const imageData = req.files.map((file) => ({
+                url: file.path,
+                public_id: file.filename,
+                propertyPostId: id,
+            }));
+
+            updateImage = await prisma.image.createMany({
+                data: imageData,
+            });
+        }
+
+        res.json({ message: "Post updated successfully", post: updatedPost, image: updateImage });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
