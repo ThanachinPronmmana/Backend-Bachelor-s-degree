@@ -486,6 +486,7 @@ exports.getpostBySeller= async(req,res)=>{
 
 
 
+
 /*
 GET /api/user → ดูผู้ใช้ทั้งหมด
 

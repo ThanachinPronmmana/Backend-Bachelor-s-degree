@@ -104,18 +104,152 @@ exports.list = async (req, res) => {
 
     }
 }
-exports.listbycategory = async (req, res) => {
+exports.handlePrice = async (req, res, price) => {
 
 }
-exports.listbyPrice = async (req, res) => {
+const handlecategory = async (req, res, categoryId) => {
+    try {
+        const ids = Array.isArray(categoryId) ? categoryId : [categoryId]
+        const products = await prisma.propertyPost.findMany({
+            where: {
+                categoryId: {
+                    in:ids
+               }
+            }, include: {
+                Image: true,
+                Category: true
+            }
+        })
+        res.json({
+            products
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+exports.handleSellerRent = async (req, res) => {
 
 }
-exports.listbyQuery = async (req, res) => {
+// exports.searchFilters = async (req, res) => {
+//     try {
+//         const { query } = req.body
+//         if (!query) {
+//             return res.status(400).json({
+//                 message: "No search query provided"
+//             })
+//         }
+//         const posts = await prisma.propertyPost.findMany({
+//             where: {
+//                 OR: [
+//                     {
+//                         Property_Name: {
+//                             contains: query,
+//                             mode: "insensitive"
+//                         }
+//                     },
+//                     {
+//                         Province:{
+//                             contains:query,
+//                             mode:"insensitive"
+//                         }
+//                     },
+//                     {
+//                         District:{
+//                             contains:query,
+//                             mode:"insensitive"
+//                         }
+//                     },
+//                     {
+//                         Subdistrict:{
+//                             contains:query,
+//                             mode:"insensitive"
+//                         }
+//                     },
+//                     {
+//                         Address:{
+//                             contains:query,
+//                             mode:"insensitive"
+//                         }
+//                     },
+//                     {
+//                         Description:{
+//                             contains:query,
+//                             mode:"insensitive"
+//                         }
+//                     },
+//                     {
+//                         Bedrooms:
+//                     }
+//                 ]
+//             }
+//         })
+//     } catch (err) {
 
-}
+//     }
+// }
+const handleQuery = async (req, res, query) => {
+    try {
+        const post = await prisma.propertyPost.findMany({
+            where: {
+                OR: [
+                    {
+                        Property_Name: {
+                            contains: query,
+                            mode: "insensitive"
+                        }
+                    },
+                    {
+                        Year_Built: {
+                            contains: query,
+                            mode: "insensitive"
+                        }
+                    },
+                    {
+                        Description: {
+                            contains: query,
+                            mode: "insensitive"
+                        }
+                    },
+                    {
+                        Address: {
+                            contains: query,
+                            mode: "insensitive"
+                        }
+                    }
+
+                ]
+            },
+            include: {
+                Category: true,
+                Image: true
+            }
+        });
+        res.json({ post });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 exports.searchFilters = async (req, res) => {
-
-}
+    try {
+        const { query, categoryId } = req.body;
+        if (query) {
+            console.log("query--->", query);
+            await handleQuery(req, res, query); // เรียกผ่าน exports
+        }
+        if (categoryId) {
+            console.log("categoryId--->", categoryId);
+            await handlecategory(req, res, categoryId)
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
 exports.getbycategory = async (req, res) => {
     try {
         const { categoryId } = req.params
@@ -224,8 +358,8 @@ exports.removepost = async (req, res) => {
         //     }
         // }
 
-        const deleteImagePromises = images.map(img =>{
-            if(img.public_id){
+        const deleteImagePromises = images.map(img => {
+            if (img.public_id) {
                 return cloudinary.uploader.destroy(img.public_id)
             }
         })
@@ -287,7 +421,7 @@ exports.updatePost = async (req, res) => {
 
         for (const field of allowedFields) {
             const incomingValue = req.body[field];
-            
+
             if (incomingValue === undefined || incomingValue === null || incomingValue === "") {
                 dataToUpdate[field] = existingPost[field];
             } else {
@@ -300,7 +434,7 @@ exports.updatePost = async (req, res) => {
             data: dataToUpdate,
         });
 
-        
+
         let updateImage = null;
         if (req.files && req.files.length > 0) {
             await prisma.image.deleteMany({

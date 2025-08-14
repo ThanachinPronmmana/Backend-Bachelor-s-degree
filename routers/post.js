@@ -8,13 +8,16 @@ const {
     getbycategory,
     getPost,
     removepost,
-    updatePost
+    updatePost,
+    searchFilters
 }
 = require("../controllers/post")
 
 router.post("/propertypost/:userId",upload.array("images",5),createpost)
+
 router.get("/post/category/:categoryId",getbycategory)
 router.get("/propertypost/:id",getPost)
 router.delete("/propertypost/:id",removepost)
 router.patch("/propertypost/:id",upload.array("images",5),updatePost)
+router.post("/search/filters",searchFilters)
 module.exports = router
