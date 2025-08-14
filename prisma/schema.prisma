@@ -11,7 +11,7 @@ datasource db {
 enum UserType {
   Buyer
   Seller
-  Admin
+  Admin 
 }
 
 enum FinancialReadiness {
@@ -137,6 +137,7 @@ model User {
   image              String?
   publicId           String?
   Deposit            Deposit[]
+  DocumentUpload     DocumentUpload[]
 }
 
 model Buyer {
@@ -155,7 +156,6 @@ model Buyer {
   Special_Requirements  String?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  DocumentUpload        DocumentUpload[]
   Negotiation           Negotiation[]
   Contract              Contract[]
 }
@@ -197,7 +197,7 @@ model Category {
 model PropertyType {
   id           String         @id @default(cuid())
   name         String
-  PropertyPost PropertyPost[]
+  // PropertyPost PropertyPost[]
 }
 
 //เอา sellerId และ location ออก
@@ -233,8 +233,8 @@ model PropertyPost {
   Status_post            Status_post                @default(PENDING)
   user                   User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                 String
-  Propertytype           PropertyType?              @relation(fields: [propertyTypeId], references: [id])
-  propertyTypeId         String?
+  // Propertytype           PropertyType?              @relation(fields: [propertyTypeId], references: [id])
+  // propertyTypeId         String?
   Category               Category?                  @relation(fields: [categoryId], references: [id])
   categoryId             String?
   Deposit                Deposit[]
@@ -244,7 +244,9 @@ model PropertyPost {
   Negotiation            Negotiation[]
   Image                  Image[]
   Seller                 Seller[]
+  DocumentUpload         DocumentUpload[]
 }
+
 //เปรียบเหมือนตะกร้าสินค้า
 model Deposit {
   id             String           @id @default(cuid())
@@ -267,18 +269,22 @@ model DocumentType {
 }
 
 model DocumentUpload {
-  id             String        @id @default(cuid())
-  DocumentName   String
-  Review_Status  Status_Review
-  Rejection_Note String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  Buyer          Buyer         @relation(fields: [buyerId], references: [id], onDelete: Cascade)
-  buyerId        String
-  DocumentType   DocumentType  @relation(fields: [typeId], references: [id])
-  typeId         String
-  Deposit        Deposit?      @relation(fields: [depositId], references: [id])
-  depositId      String?
+  id                 String        @id @default(cuid())
+  DocumentName       String
+  DocumentUrl        String
+  CloudinaryPublicId String?
+  Review_Status      Status_Review
+  Rejection_Note     String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  User               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String
+  DocumentType       DocumentType? @relation(fields: [typeId], references: [id])
+  typeId             String?
+  Deposit            Deposit?      @relation(fields: [depositId], references: [id])
+  depositId          String?
+  Post               PropertyPost? @relation(fields: [postId], references: [id])
+  postId             String?
 }
 
 model Payment {

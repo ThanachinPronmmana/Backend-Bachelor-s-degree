@@ -1,6 +1,15 @@
 const prisma = require("../config/prisma");
 const { Status_Seller, UserType } = require("@prisma/client");
 const cloudinary = require("../utils/cloudinary")
+const getCloudinaryResourceDetails = async (publicId) => {
+  try {
+    const resource = await cloudinary.api.resource(publicId);
+    return resource;
+  } catch (error) {
+    console.error("Cloudinary API error:", error);
+    return null;
+  }
+};
 exports.updateStatusSeller = async (req, res) => {
   try {
     const { Status } = req.body;
@@ -359,49 +368,167 @@ exports.updateimage = async (req, res) => {
     });
   }
 };
-exports.deposit = async(req,res)=>{
-  try{
 
-  }catch(err){
-
-  }
-}
-exports.getpostBySeller= async(req,res)=>{
-  try{
-    const {id} = req.params
-    const user = await prisma.user.findFirst({
-      where: {id}
-    })
-    if(!user){
-      return res.status(404).json({
-        message:"User not found"
+exports.userdeposit = async (req, res) => {
+  try {
+    const { userId, postId, Deposit_Amount } = req.body
+    if (!userId || !postId || !Deposit_Amount || Deposit_Amount <= 0) {
+      return res.status(400).json({
+        message: "Invalid deposit request"
       })
     }
-    const posts = await prisma.propertyPost.findMany({
-      where:{
-        userId:id
+    const deposit = await prisma.deposit.create({
+      data: {
+        userId,
+        postId,
+        Deposit_Amount,
+        Deposit_Status: "PENDING",
+      }
+    })
+    const property = await prisma.propertyPost.findUnique({
+      where: {
+        id: postId
+      }, include: {
+        user: true
+      }
+    })
+    await prisma.notification.create({
+      data: {
+        userId: property.userId,
+        Title: "มีคำขอมัดจำใหม่",
+        Message: "กรุณาตรวจสอบเอกสารของผู้ซื้อ",
+        Status: "UNREAD",
+        relatedProcess: "DEPOSIT",
+        referenceId: deposit.id
+      }
+    })
+
+    res.json({ message: "สร้างการมัดจำสำเร็จ", deposit });
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      message: "Server Error"
+    })
+  }
+}
+exports.useruploadDocument = async (req, res) => {
+  try {
+    const { userId, typeId, DocumentName, postId } = req.body;
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ message: "No file upload" });
+    }
+    // console.log("Uploaded file info:", req.file);
+    // console.log("Document URL:", file.path);
+    // console.log("File resource_type:", file.resource_type);
+    const documentUrl = file.secure_url || file.path || file.url;
+    const publicId = file.filename || file.public_id;
+    
+    // console.log("PublicId:",publicId)
+    // console.log("URL:", documentUrl)
+
+    // const ext = file.mimetype.split("/")[1].toLowerCase();
+    // const resourceType = ["pdf", "doc", "docx"].includes(ext) ? "raw" : "image";
+    // console.log("Resource Type:", resourceType);
+    const document = await prisma.documentUpload.create({
+      data: {
+        userId,
+        typeId,
+        DocumentName,
+        DocumentUrl: documentUrl,
+        CloudinaryPublicId: publicId,
+        Review_Status: "PENDING",
+        postId,
       },
-      select:{
-        id:true,
-        Property_Name:true,
-        Price:true,
-        Status_post:true,
-        Address:true,
-        Province:true,
-        District:true,
-        Image:true,
-        Category:true,
-        
+    });
+
+    const post = await prisma.propertyPost.findUnique({
+      where: { id: postId },
+      select: { userId: true },
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    await prisma.notification.create({
+      data: {
+        userId: post.userId,
+        Title: "มีเอกสารใหม่สำหรับตรวจสอบมัดจำ",
+        Message: `ผู้ซื้อได้อัปโหลดเอกสาร: ${DocumentName}\n\nดูเอกสาร: ${documentUrl}`,
+        Status: "UNREAD",
+        relatedProcess: "DOCUMENT_UPLOAD",
+        referenceId: document.id,
+      },
+    });
+
+    res.json({
+      message: "Upload document successful and notification sent",
+      document,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.getdeposits = async (req, res) => {
+  try {
+    const { userId } = req.params
+    const deposits = await prisma.deposit.findMany({
+      where: {
+        userId
+      },
+      include: {
+        propertyPost: true
       }
     })
     res.json({
-      message:"Success",
-      posts
+      deposits
     })
-  }catch(err){
+  } catch (err) {
     console.log(err)
     res.status(500).json({
-      message:"Server Error"
+      message: "Server Error"
+    })
+  }
+}
+exports.getpostBySeller = async (req, res) => {
+  try {
+    const { id } = req.params
+    const user = await prisma.user.findFirst({
+      where: { id }
+    })
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      })
+    }
+    const posts = await prisma.propertyPost.findMany({
+      where: {
+        userId: id
+      },
+      select: {
+        id: true,
+        Property_Name: true,
+        Price: true,
+        Status_post: true,
+        Address: true,
+        Province: true,
+        District: true,
+        Image: true,
+        Category: true,
+
+      }
+    })
+    res.json({
+      message: "Success",
+      posts
+    })
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      message: "Server Error"
     })
   }
 }

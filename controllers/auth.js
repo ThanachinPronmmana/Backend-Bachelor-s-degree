@@ -201,10 +201,10 @@ exports.login = async (req, res) => {
           Occupation: user.Buyer.Occupation,
           Monthly_Income: user.Buyer.Monthly_Income,
           Family_Size: user.Buyer.Family_Size,
-          Preferred_Province: user.Buyer.Preferred_Province,   // ✅ ต้องเพิ่ม
-          Preferred_District: user.Buyer.Preferred_District,   // ✅ ต้องเพิ่ม
-          Parking_Needs: user.Buyer.Parking_Needs,             // ✅ ถ้าใช้ใน form
-          Nearby_Facilities: user.Buyer.Nearby_Facilities,     // ✅ ถ้าใช้ใน form
+          Preferred_Province: user.Buyer.Preferred_Province,   
+          Preferred_District: user.Buyer.Preferred_District,   
+          Parking_Needs: user.Buyer.Parking_Needs,             
+          Nearby_Facilities: user.Buyer.Nearby_Facilities,     
           Lifestyle_Preferences: user.Buyer.Lifestyle_Preferences,
           Special_Requirements: user.Buyer.Special_Requirements,
           DateofBirth: user.Buyer.DateofBirth,
