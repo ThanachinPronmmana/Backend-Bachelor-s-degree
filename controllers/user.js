@@ -414,6 +414,7 @@ exports.userdeposit = async (req, res) => {
 exports.useruploadDocument = async (req, res) => {
   try {
     const { userId, typeId, DocumentName, postId } = req.body;
+    // const {id} = req.params
     const file = req.file;
     if (!file) {
       return res.status(400).json({ message: "No file upload" });
@@ -455,13 +456,22 @@ exports.useruploadDocument = async (req, res) => {
       data: {
         userId: post.userId,
         Title: "มีเอกสารใหม่สำหรับตรวจสอบมัดจำ",
-        Message: `ผู้ซื้อได้อัปโหลดเอกสาร: ${DocumentName}\n\nดูเอกสาร: ${documentUrl}`,
+        Message: "มีเอกสารถูกอัปโหลด",
         Status: "UNREAD",
         relatedProcess: "DOCUMENT_UPLOAD",
         referenceId: document.id,
       },
     });
-
+    await prisma.notification.create({
+      data:{
+        userId,
+        Title: "เอกสารถูกส่งไปยังผู้ขาย",
+        Message: "รออนุมัติ",
+        Status:"UNREAD",
+        relatedProcess: "DOCUMENT_UPLOAD",  
+        referenceId: document.id,
+      }
+    })
     res.json({
       message: "Upload document successful and notification sent",
       document,

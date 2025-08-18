@@ -11,7 +11,7 @@ datasource db {
 enum UserType {
   Buyer
   Seller
-  Admin 
+  Admin
 }
 
 enum FinancialReadiness {
@@ -81,15 +81,15 @@ enum Additional_Amenities_list {
 }
 
 enum Sell_Rent {
-  Sell
-  Rent
+  SALE
+  RENT
 }
 
-enum Other_related_expenses {
-  Ownership_transfer_fee
-  House_insurance_fee
-  Common_area_feeF
-}
+// enum Other_related_expenses {
+//   Ownership_transfer_fee
+//   House_insurance_fee
+//   Common_area_feeF
+// }
 
 enum Nearby_Facilities {
   BTS_MRT
@@ -195,14 +195,14 @@ model Category {
 }
 
 model PropertyType {
-  id           String         @id @default(cuid())
-  name         String
+  id   String @id @default(cuid())
+  name String
   // PropertyPost PropertyPost[]
 }
 
 //เอา sellerId และ location ออก
 model PropertyPost {
-  id                     String                     @id @default(cuid())
+  id                     String                      @id @default(cuid())
   Property_Name          String
   Price                  Float
   Usable_Area            Float
@@ -210,7 +210,7 @@ model PropertyPost {
   Bedrooms               Int
   Bathroom               Int
   Description            String
-  Deposit_Amount         Float
+  Deposit_Amount         Float? //deposit sell
   Contract_Seller        String?
   LinkMap                String?
   Latitude               Float?
@@ -221,25 +221,28 @@ model PropertyPost {
   Address                String
   Total_Rooms            Int?
   Year_Built             String?
-  Nearby_Landmarks       Nearby_Landmarks_list?
-  Additional_Amenities   Additional_Amenities_list?
+  Nearby_Landmarks       Nearby_Landmarks_list[]
+  Additional_Amenities   Additional_Amenities_list[]
   Parking_Space          Int?
   Sell_Rent              Sell_Rent
-  Other_related_expenses Other_related_expenses
+  Other_related_expenses String?
   Link_line              String?
   Link_facbook           String?
   Name                   String?
   Phone                  String
-  Status_post            Status_post                @default(PENDING)
-  user                   User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  Deposit_Rent           Float?
+  Interest               Float?
+  Status_post            Status_post                 @default(PENDING)
+  user                   User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                 String
   // Propertytype           PropertyType?              @relation(fields: [propertyTypeId], references: [id])
   // propertyTypeId         String?
-  Category               Category?                  @relation(fields: [categoryId], references: [id])
+  Category               Category?                   @relation(fields: [categoryId], references: [id])
   categoryId             String?
   Deposit                Deposit[]
-  createdAt              DateTime                   @default(now())
-  updatedAt              DateTime                   @updatedAt
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
   Payment                Payment[]
   Negotiation            Negotiation[]
   Image                  Image[]

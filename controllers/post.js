@@ -32,11 +32,22 @@ exports.createpost = async (req, res) => {
             Bathroom,
             Propertytype,
             Other_related_expenses,
-            categoryId
+            categoryId,
+            Deposit_Rent,
+            Interest,
         } = req.body
         const { userId } = req.params
         const files = req.files;
+        const nearbyLandmarksArray = Array.isArray(Nearby_Landmarks)
+          ? Nearby_Landmarks
+          : (Nearby_Landmarks ? [Nearby_Landmarks] : []);
+
+        const additionalAmenitiesArray = Array.isArray(Additional_Amenities)
+          ? Additional_Amenities
+          : (Additional_Amenities ? [Additional_Amenities] : []);
+        
         const newPost = await prisma.propertyPost.create({
+            
             data: {
                 Property_Name,
                 Province,
@@ -47,7 +58,7 @@ exports.createpost = async (req, res) => {
                 Usable_Area: parseFloat(Usable_Area),
                 Total_Rooms: parseInt(Total_Rooms),
                 Year_Built,
-                Nearby_Landmarks,
+                Nearby_Landmarks:nearbyLandmarksArray,
                 Land_Size: parseFloat(Land_Size),
                 Bedrooms: parseInt(Bedrooms),
                 Bathroom: parseInt(Bathroom),
@@ -56,7 +67,7 @@ exports.createpost = async (req, res) => {
                 Contract_Seller,
                 LinkMap,
                 Price: parseFloat(Price),
-                Additional_Amenities,
+                Additional_Amenities:additionalAmenitiesArray,
                 Parking_Space: parseInt(Parking_Space),
                 Sell_Rent: Sell_Rent,
                 Link_line,
@@ -66,6 +77,8 @@ exports.createpost = async (req, res) => {
                 Latitude: parseFloat(Latitude),
                 Longitude: parseFloat(Longitude),
                 Other_related_expenses,
+                Deposit_Rent:parseFloat(Deposit_Rent),
+                Interest:parseFloat(Interest),
                 Category: {
                     connect: {
                         id: categoryId
@@ -287,6 +300,7 @@ exports.getPost = async (req, res) => {
                 Property_Name: true,
                 Province: true,
                 Deposit: true,
+                District:true,
                 Subdistrict: true,
                 Address: true,
                 Category: true,
